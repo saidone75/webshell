@@ -5,7 +5,7 @@ Web Shell provides a browser-based terminal backed by a server-side shell proces
 ## Features
 
 - Interactive terminal available from a web browser
-- WebSocket endpoint at `/shell`
+- WebSocket endpoint
 - Password-protected WebSocket handshake
 - Automatic terminal resizing
 - PowerShell support on Windows
@@ -61,7 +61,7 @@ $env:SHELL_PASSWORD = "change-this-password"
 mvn spring-boot:run
 ```
 
-Open [http://localhost:8080](http://localhost:8080) and enter the configured password.
+Open [http://localhost:8080/shell.html](http://localhost:8080/shell.html) and enter the configured password.
 
 ## Building
 
@@ -77,7 +77,7 @@ On Windows, the equivalent helper script is:
 build.bat
 ```
 
-The artifact is written to `target/Web Shell-1.0.0.war`.
+The artifact is written to `target/webshell-1.0.0.war`.
 
 ## Running with Docker Compose
 
@@ -87,7 +87,7 @@ Build and start the container from the project root:
 docker compose -f docker/docker-compose.yml up --build
 ```
 
-The application is then available at [http://localhost:8080](http://localhost:8080). Set `SHELL_PASSWORD` when starting the container if you want to override the configured password:
+The application is then available at [http://localhost:8080/shell.html](http://localhost:8080/shell.html). Set `SHELL_PASSWORD` when starting the container if you want to override the configured password:
 
 ```bash
 SHELL_PASSWORD="change-this-password" docker compose -f docker/docker-compose.yml up --build
