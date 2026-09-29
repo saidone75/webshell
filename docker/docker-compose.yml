@@ -1,0 +1,12 @@
+services:
+  migrator:
+    container_name: webshell
+    image: webshell:latest
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      JAVA_TOOL_OPTIONS: $JAVA_TOOL_OPTIONS
+      SPRING_PROFILES_ACTIVE: docker

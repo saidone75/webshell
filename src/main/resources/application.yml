@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: webshell
+  output:
+    ansi:
+      enabled: always
+application:
+  shell:
+    password: ${SHELL_PASSWORD:0704SmcGUznwetKvPgYB}
+server:
+  port: 8080
