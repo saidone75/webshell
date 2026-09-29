@@ -1,6 +1,6 @@
-package it.tai.migrator.config;
+package org.saidone.webshell.config;
 
-import it.tai.migrator.handler.ShellWebSocketHandler;
+import org.saidone.webshell.handler.ShellWebSocketHandler;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
