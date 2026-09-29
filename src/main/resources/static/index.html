@@ -47,9 +47,9 @@
     }
 
     function getContextPath() {
-        const pageName = '/shell.html';
+        const pageName = '/index.html';
         const path = window.location.pathname;
-        return path.endsWith(pageName) ? path.slice(0, -pageName.length) : '';
+        return path.endsWith(pageName) ? path.slice(0, -pageName.length) : path.replace(/\/$/, '');
     }
 
     document.getElementById('password-form').addEventListener('submit', (event) => {
