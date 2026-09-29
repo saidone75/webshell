@@ -52,23 +52,23 @@
         const password = document.getElementById('shell-password').value;
         form.remove();
 
-        // Connessione WebSocket
+        // WebSocket connection
         const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
         const socket = new WebSocket(
             protocol + location.host + '/shell?password=' + encodeURIComponent(password));
 
         socket.addEventListener('open', () => sendTerminalSize(socket));
 
-        // Output del server alla console di xterm
+        // Server output to the xterm console
         socket.onmessage = (event) => {
             term.write(event.data);
         };
 
         socket.onclose = () => {
-            term.write('\r\n\x1b[31m[Connessione chiusa dal server]\x1b[0m\r\n');
+            term.write('\r\n\x1b[31m[Connection closed by the server]\x1b[0m\r\n');
         };
 
-        // Input dall'utente inviato al server via WebSocket
+        // Send user input to the server via WebSocket
         term.onData((data) => {
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(data);
