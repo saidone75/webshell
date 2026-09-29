@@ -1,4 +1,4 @@
-package it.tai.migrator;
+package org.saidone.webshell;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
