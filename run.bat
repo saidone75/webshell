@@ -1,6 +1,6 @@
 @echo off
 
-set JAVA_OPTS=-Xms1G -Xmx1G
+set JAVA_OPTS=-Xmx1G
 
 :: remote debug
 set JAVA_OPTS=%JAVA_OPTS% -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8000
@@ -12,7 +12,5 @@ set JAVA_OPTS=%JAVA_OPTS% -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,
 :: https://github.com/JetBrains/JetBrainsRuntime/releases
 :: set JAVA_OPTS=%JAVA_OPTS% -XX:HotswapAgent=fatjar
 
-set SPRING_PROFILES_ACTIVE=prod,dev
-
 :: use mvn for running application without building it
-mvn spring-boot:run -Dspring-boot.run.jvmArguments="%JAVA_OPTS%" -Dlicense.skip=true
+mvn spring-boot:run -Dspring-boot.run.jvmArguments="%JAVA_OPTS%"
