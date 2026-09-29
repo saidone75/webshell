@@ -61,7 +61,7 @@ $env:SHELL_PASSWORD = "change-this-password"
 mvn spring-boot:run
 ```
 
-Open [http://localhost:8080/shell.html](http://localhost:8080/shell.html) and enter the configured password.
+Open [http://localhost:8080/](http://localhost:8080/) and enter the configured password.
 
 ## Building
 
@@ -87,7 +87,7 @@ Build and start the container from the project root:
 docker compose -f docker/docker-compose.yml up --build
 ```
 
-The application is then available at [http://localhost:8080/shell.html](http://localhost:8080/shell.html). Set `SHELL_PASSWORD` when starting the container if you want to override the configured password:
+The application is then available at [http://localhost:8080/](http://localhost:8080/). Set `SHELL_PASSWORD` when starting the container if you want to override the configured password:
 
 ```bash
 SHELL_PASSWORD="change-this-password" docker compose -f docker/docker-compose.yml up --build
@@ -128,7 +128,7 @@ The WebSocket endpoint currently allows requests from any origin. Additional net
 ```text
 src/main/java/                         Application and WebSocket implementation
 src/main/resources/application.yml     Spring Boot configuration
-src/main/resources/static/shell.html   Browser terminal client
+src/main/resources/static/index.html   Browser terminal client
 docker/Dockerfile                       Multi-stage container build
 docker/docker-compose.yml               Docker Compose configuration
 ```
