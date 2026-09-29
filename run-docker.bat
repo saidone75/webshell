@@ -95,7 +95,6 @@ docker push %HARBOR_URL%/%APP_NAME%:%APP_VERSION%
 EXIT /B %ERRORLEVEL%
 
 :start
-docker volume create %APP_NAME%-volume
 %COMPOSE_CMD% up -d
 EXIT /B %ERRORLEVEL%
 
