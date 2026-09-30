@@ -3,6 +3,7 @@ package org.saidone.webshell.handler;
 import com.pty4j.PtyProcess;
 import com.pty4j.PtyProcessBuilder;
 import com.pty4j.WinSize;
+import lombok.val;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -26,17 +27,17 @@ public class ShellWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 
-        var osName = System.getProperty("os.name").toLowerCase();
+        val osName = System.getProperty("os.name").toLowerCase();
         boolean isWindows = osName.contains("win");
 
-        var cmd = isWindows
+        val cmd = isWindows
                 ? new String[]{"powershell.exe", "-NoExit"}
                 : new String[]{"/bin/sh", "-i"};
 
-        var env = new HashMap<>(System.getenv());
+        val env = new HashMap<>(System.getenv());
         env.put("TERM", "xterm-256color");
 
-        var process = new PtyProcessBuilder()
+        val process = new PtyProcessBuilder()
                 .setCommand(cmd)
                 .setEnvironment(env)
                 .start();
@@ -46,11 +47,11 @@ public class ShellWebSocketHandler extends TextWebSocketHandler {
         processes.put(session.getId(), process);
 
         executorService.submit(() -> {
-            try (var in = process.getInputStream()) {
+            try (val in = process.getInputStream()) {
                 byte[] buffer = new byte[1024];
                 int bytesRead;
                 while ((bytesRead = in.read(buffer)) != -1 && session.isOpen()) {
-                    var text = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
+                    val text = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
                     session.sendMessage(new TextMessage(text));
                 }
             } catch (Exception ignored) {
@@ -60,10 +61,10 @@ public class ShellWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, @NonNull TextMessage message) throws Exception {
-        var process = processes.get(session.getId());
+        val process = processes.get(session.getId());
         if (process != null && process.isAlive()) {
             if (message.getPayload().startsWith("resize:")) {
-                var dimensions = message.getPayload().substring("resize:".length()).split(":", 2);
+                val dimensions = message.getPayload().substring("resize:".length()).split(":", 2);
                 if (dimensions.length == 2) {
                     process.setWinSize(new WinSize(
                             Integer.parseInt(dimensions[0]),
@@ -71,7 +72,7 @@ public class ShellWebSocketHandler extends TextWebSocketHandler {
                 }
                 return;
             }
-            var out = process.getOutputStream();
+            val out = process.getOutputStream();
             out.write(message.getPayload().getBytes(StandardCharsets.UTF_8));
             out.flush();
         }
@@ -79,7 +80,7 @@ public class ShellWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, @NonNull CloseStatus status) {
-        var process = processes.remove(session.getId());
+        val process = processes.remove(session.getId());
         if (process != null && process.isAlive()) {
             process.destroyForcibly();
         }

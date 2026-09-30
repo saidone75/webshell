@@ -2,96 +2,178 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web Shell</title>
     <link rel="stylesheet" href="webjars/xterm/5.3.0/css/xterm.css"/>
     <style>
-        #terminal {
+        :root,
+        :root[data-theme="github-dark"] {
+            /* Background */
+            --bg-main: #0d1117;
+            --bg-surface: #161b22;
+            --bg-overlay: var(--bg-main);
+
+            /* Borders and Details */
+            --border-color: var(--bg-surface);
+            --accent-blue: #58a6ff;
+
+            /* Text */
+            --text-main: #c9d1d9;
+            --text-bright: var(--text-main);
+
+            /* Button (Action) */
+            --btn-bg: #238636;
+        }
+
+        :root[data-theme="true-summer"] {
+            --bg-main: #fffdf7;
+            --bg-surface: #ffffff;
+            --bg-overlay: #fffdf7;
+            --border-color: #d8d3c8;
+            --accent-blue: #2f6f9f;
+            --text-main: #3f4650;
+            --text-bright: #20252b;
+            --btn-bg: #3d7a57;
+        }
+
+        :root[data-theme="zenburn"] {
+            --bg-main: #3f3f3f;
+            --bg-surface: #4f4f4f;
+            --bg-overlay: #3f3f3f;
+            --border-color: #5f5f5f;
+            --accent-blue: #8ac6d1;
+            --text-main: #dcdccc;
+            --text-bright: #f0dfaf;
+            --btn-bg: #7f9f7f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
             width: 100%;
-            height: 90vh;
-            background-color: #000;
+            height: 100%;
+            background: var(--bg-main);
+            color: var(--text-main);
+            font-family: system-ui, sans-serif;
+            overflow: hidden;
         }
 
-        #password-form {
-            margin: 1rem 0;
+        #terminal {
+            width: 100vw;
+            height: 100vh;
         }
 
-        #password-form input {
-            padding: 0.4rem;
+        #login-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-overlay);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        form {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-surface);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        input {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-bright);
+            padding: 8px 12px;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        button {
+            background: var(--btn-bg);
+            border: none;
+            color: var(--text-bright);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-<h2>Web Shell</h2>
-<form id="password-form">
-    <label for="shell-password">Password:</label>
-    <input id="shell-password" name="password" type="password" required autofocus>
-    <button type="submit">Connetti</button>
-</form>
+
+<div id="login-overlay">
+    <form id="password-form">
+        <input id="shell-password" type="password" placeholder="Password" required autofocus>
+        <select id="theme-select" aria-label="Theme">
+            <option value="github-dark">GitHub Dark</option>
+            <option value="true-summer">True Summer</option>
+            <option value="zenburn">Zenburn</option>
+        </select>
+        <button type="submit">Connect</button>
+    </form>
+</div>
+
 <div id="terminal"></div>
 
 <script src="webjars/xterm/5.3.0/lib/xterm.js"></script>
 <script src="webjars/xterm-addon-fit/0.8.0/lib/xterm-addon-fit.js"></script>
 <script>
-    const term = new Terminal({
-        cursorBlink: true
+    const themes = {
+        'github-dark': {background: '#0d1117', foreground: '#c9d1d9', cursor: '#c9d1d9'},
+        'true-summer': {background: '#fffdf7', foreground: '#3f4650', cursor: '#3f4650'},
+        'zenburn': {background: '#3f3f3f', foreground: '#dcdccc', cursor: '#dcdccc'}
+    };
+    const savedTheme = localStorage.getItem('webshell-theme') || 'github-dark';
+    document.documentElement.dataset.theme = savedTheme;
+    const themeSelect = document.getElementById('theme-select');
+    themeSelect.value = savedTheme;
+    const term = new Terminal({cursorBlink: true, theme: themes[savedTheme]});
+    themeSelect.addEventListener('change', () => {
+        const theme = themeSelect.value;
+        document.documentElement.dataset.theme = theme;
+        localStorage.setItem('webshell-theme', theme);
+        term.options.theme = themes[theme];
     });
     const fitAddon = new FitAddon.FitAddon();
     term.loadAddon(fitAddon);
     term.open(document.getElementById('terminal'));
     fitAddon.fit();
 
-    function sendTerminalSize(socket) {
-        if (socket.readyState === WebSocket.OPEN) {
-            socket.send(`resize:${term.cols}:${term.rows}`);
-        }
-    }
+    const sendSize = (ws) => ws.readyState === WebSocket.OPEN && ws.send(`resize:${term.cols}:${term.rows}`);
+    const getContextPath = () => window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
 
-    function getContextPath() {
-        const pageName = '/index.html';
-        const path = window.location.pathname;
-        return path.endsWith(pageName) ? path.slice(0, -pageName.length) : path.replace(/\/$/, '');
-    }
+    document.getElementById('password-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pwd = document.getElementById('shell-password').value;
+        document.getElementById('login-overlay').remove();
 
-    document.getElementById('password-form').addEventListener('submit', (event) => {
-        event.preventDefault();
-        const form = event.currentTarget;
-        const password = document.getElementById('shell-password').value;
-        form.remove();
-
-        // WebSocket connection
         const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
-        const socket = new WebSocket(
-            protocol + location.host + getContextPath() + '/shell?password=' + encodeURIComponent(password));
+        const socket = new WebSocket(`${protocol}${location.host}${getContextPath()}/shell?password=${encodeURIComponent(pwd)}`);
 
-        socket.addEventListener('open', () => sendTerminalSize(socket));
+        socket.addEventListener('open', () => sendSize(socket));
+        socket.onmessage = (e) => term.write(e.data);
+        socket.onclose = () => term.write('\r\n\x1b[31m[Connection closed by the server]\x1b[0m\r\n');
 
-        // Server output to the xterm console
-        socket.onmessage = (event) => {
-            term.write(event.data);
-        };
-
-        socket.onclose = () => {
-            term.write('\r\n\x1b[31m[Connection closed by the server]\x1b[0m\r\n');
-        };
-
-        // Send user input to the server via WebSocket
-        term.onData((data) => {
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.send(data);
-            }
-        });
+        term.onData((data) => socket.readyState === WebSocket.OPEN && socket.send(data));
 
         window.addEventListener('resize', () => {
             fitAddon.fit();
-            sendTerminalSize(socket);
+            sendSize(socket);
         });
 
-        setInterval(() => {
-            if (socket.readyState === WebSocket.OPEN) {
-                // keepalive
-                socket.send('');
-            }
-        }, 15000);
+        setInterval(() => socket.readyState === WebSocket.OPEN && socket.send(''), 15000);
     });
 </script>
 </body>
