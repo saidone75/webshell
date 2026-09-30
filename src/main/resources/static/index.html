@@ -164,7 +164,7 @@
 
         socket.addEventListener('open', () => sendSize(socket));
         socket.onmessage = (e) => term.write(e.data);
-        socket.onclose = () => term.write('\r\n\x1b[31m[Connessione chiusa dal server]\x1b[0m\r\n');
+        socket.onclose = () => term.write('\r\n\x1b[31m[Connection closed by the server]\x1b[0m\r\n');
 
         term.onData((data) => socket.readyState === WebSocket.OPEN && socket.send(data));
 
