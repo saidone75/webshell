@@ -145,9 +145,9 @@ The WebSocket endpoint currently allows requests from any origin. Additional net
 ## Project layout
 
 ```text
-src/main/java/                         Application and WebSocket implementation
-src/main/resources/application.yml     Spring Boot configuration
-src/main/resources/static/index.html   Browser terminal client
+src/main/java/                          Application and WebSocket implementation
+src/main/resources/application.yml      Spring Boot configuration
+src/main/resources/static/index.html    Browser terminal client
 docker/Dockerfile                       Multi-stage container build
 docker/docker-compose.yml               Docker Compose configuration
 ```
