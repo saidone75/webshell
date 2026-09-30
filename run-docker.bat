@@ -2,7 +2,7 @@
 SETLOCAL
 
 SET APP_NAME=webshell
-SET HARBOR_URL=harbor.tai.it/webshell
+SET HARBOR_URL=
 SET COMPOSE_CMD=docker compose -f docker\docker-compose.yml
 
 SET JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75
