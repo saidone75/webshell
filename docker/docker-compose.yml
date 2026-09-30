@@ -9,3 +9,4 @@ services:
       - "8080:8080"
     environment:
       JAVA_TOOL_OPTIONS: $JAVA_TOOL_OPTIONS
+      SPRING_PROFILES_ACTIVE: $SPRING_PROFILES_ACTIVE

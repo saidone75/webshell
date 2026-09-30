@@ -29,7 +29,7 @@ ARG UID=1010
 ARG GID=1010
 
 RUN addgroup --gid ${GID} -S spring && adduser --uid ${UID} -S spring -G spring
-RUN mkdir /data && chown -R spring:spring /data
+
 USER spring:spring
 
 ARG JAR_FILE=/application/target/webshell-*.war

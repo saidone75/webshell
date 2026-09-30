@@ -6,6 +6,7 @@ SET HARBOR_URL=harbor.tai.it/webshell
 SET COMPOSE_CMD=docker compose -f docker\docker-compose.yml
 
 SET JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75
+set SPRING_PROFILES_ACTIVE=prod
 
 set "APP_VERSION="
 
@@ -24,7 +25,6 @@ IF "%~1"=="" (
     echo Usage: %~nx0 {build^|push^|build_start^|start^|stop^|restart^|purge^|tail^|update}
     GOTO END
 )
-
 
 IF /I "%~1"=="build" (
     CALL :build

@@ -1,5 +1,6 @@
 package org.saidone.webshell.config;
 
+import lombok.val;
 import org.saidone.webshell.handler.ShellWebSocketHandler;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,11 +52,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 @NonNull ServerHttpResponse response,
                 @NonNull WebSocketHandler wsHandler,
                 @NonNull Map<String, Object> attributes) {
-            var suppliedPassword = request.getURI().getQuery();
+            val suppliedPassword = request.getURI().getQuery();
             var password = (String) null;
             if (suppliedPassword != null) {
-                for (var parameter : suppliedPassword.split("&")) {
-                    var pair = parameter.split("=", 2);
+                for (val parameter : suppliedPassword.split("&")) {
+                    val pair = parameter.split("=", 2);
                     if (pair.length == 2 && pair[0].equals("password")) {
                         password = URLDecoder.decode(pair[1], StandardCharsets.UTF_8);
                         break;
@@ -63,7 +64,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 }
             }
 
-            boolean authenticated = password != null
+            val authenticated = password != null
                     && MessageDigest.isEqual(
                     expectedPassword,
                     password.getBytes(StandardCharsets.UTF_8));

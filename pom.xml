@@ -62,6 +62,12 @@
             <artifactId>xterm-addon-fit</artifactId>
             <version>0.8.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.48</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
