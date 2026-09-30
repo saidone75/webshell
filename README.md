@@ -1,6 +1,16 @@
 # Web Shell
 
-Web Shell provides a browser-based terminal backed by a server-side shell process. The browser uses [xterm.js](https://xtermjs.org/) for terminal rendering and a WebSocket connection for interactive input and output.
+**A browser-based terminal powered by Spring Boot, WebSockets, and xterm.js.**
+
+Run a real shell session directly from your browser, with support for Windows PowerShell and POSIX shells.
+
+[Getting started](#running-locally) · [Configuration](#configuration) · [Docker](#running-with-docker-compose) · [WebSocket protocol](#websocket-protocol)
+
+## Overview
+
+Web Shell provides an interactive terminal in the browser. The frontend uses [xterm.js](https://xtermjs.org/) to render the terminal, while a WebSocket connection carries input, output, and terminal resize events between the browser and a server-side shell process.
+
+Each WebSocket connection creates its own shell process. When the connection closes, that process is forcibly terminated.
 
 ## Features
 
@@ -14,19 +24,26 @@ Web Shell provides a browser-based terminal backed by a server-side shell proces
 
 ## Requirements
 
-For local development:
+### Local development
 
 - Java 17 or newer
 - Maven 3.6.3 or newer
 
-For containerized execution:
+### Containerized execution
 
 - Docker
 - Docker Compose
 
 ## Configuration
 
-The application listens on port `8080` by default. The shell password is configured with the `SHELL_PASSWORD` environment variable:
+The application listens on port `8080` by default. Configure it through environment variables before starting the application:
+
+| Variable | Example | Description |
+| --- | --- | --- |
+| `SHELL_PASSWORD` | `change-this-password` | Password required by the WebSocket handshake |
+| `SERVER_PORT` | `9090` | HTTP server port |
+
+The shell password is configured with the `SHELL_PASSWORD` environment variable:
 
 ```text
 SHELL_PASSWORD=change-this-password
@@ -40,7 +57,9 @@ The port can be changed with the standard Spring Boot property:
 SERVER_PORT=9090
 ```
 
-## Running locally
+## Getting started
+
+### Running locally
 
 On Windows, use the included script:
 
@@ -63,7 +82,7 @@ mvn spring-boot:run
 
 Open [http://localhost:8080/](http://localhost:8080/) and enter the configured password.
 
-## Building
+### Building
 
 Build the WAR file with:
 
@@ -117,7 +136,7 @@ resize:<columns>:<rows>
 
 Each WebSocket connection creates one shell process. The process is forcibly terminated when the connection closes.
 
-## Security considerations
+## Security
 
 Web Shell executes commands on the host running the application with the permissions of the application process. Treat it as an administrative tool and run it only in a trusted environment. Use a strong password, restrict network access, and place it behind HTTPS and an appropriate reverse proxy before making it available over an untrusted network.
 
