@@ -26,7 +26,6 @@ package org.saidone.webshell.handler;
 import com.pty4j.PtyProcess;
 import com.pty4j.PtyProcessBuilder;
 import com.pty4j.WinSize;
-import jakarta.annotation.PreDestroy;
 import lombok.val;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Component;
@@ -36,11 +35,11 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class ShellWebSocketHandler extends TextWebSocketHandler {
@@ -66,9 +65,9 @@ public class ShellWebSocketHandler extends TextWebSocketHandler {
                 .setEnvironment(env)
                 .start();
 
-        process.setWinSize(new WinSize(80, 24));
-
         processes.put(session.getId(), process);
+
+        process.setWinSize(new WinSize(80, 24));
 
         executorService.submit(() -> {
             try (val in = process.getInputStream()) {
@@ -79,9 +78,6 @@ public class ShellWebSocketHandler extends TextWebSocketHandler {
                     session.sendMessage(new TextMessage(text));
                 }
             } catch (Exception ignored) {
-            } finally {
-                processes.remove(session.getId(), process);
-                terminateProcessTree(process);
             }
         });
     }
@@ -108,65 +104,9 @@ public class ShellWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, @NonNull CloseStatus status) {
         val process = processes.remove(session.getId());
-        terminateProcessTree(process);
-    }
-
-    private void terminateProcessTree(PtyProcess process) {
-        if (process == null || !process.isAlive()) {
-            return;
-        }
-
-        val handle = ProcessHandle.of(process.pid()).orElse(null);
-        val descendants = new ArrayList<>(handle == null
-                ? List.of()
-                : handle.descendants().toList());
-
-        Collections.reverse(descendants);
-
-        // Terminate children first, so the shell can reap them before it exits
-        descendants.forEach(child -> {
-            child.destroy();
-            waitForExit(child, 500);
-            if (child.isAlive()) {
-                child.destroyForcibly();
-            }
-        });
-
-        if (IS_WINDOWS) {
-            try {
-                val killer = new ProcessBuilder(
-                        "taskkill", "/PID", Long.toString(process.pid()), "/T", "/F").start();
-                killer.waitFor(2, TimeUnit.SECONDS);
-            } catch (Exception ignored) {
-                // Fall back to pty4j's process handle if taskkill is unavailable
-            }
-        } else {
-            process.destroy();
-        }
-
-        if (handle != null) {
-            waitForExit(handle, 1000);
-        }
-        if (process.isAlive()) {
+        if (process != null && process.isAlive()) {
             process.destroyForcibly();
-            if (handle != null) {
-                waitForExit(handle, 1000);
-            }
         }
-    }
-
-    private void waitForExit(ProcessHandle process, long timeoutMillis) {
-        try {
-            process.onExit().get(timeoutMillis, TimeUnit.MILLISECONDS);
-        } catch (Exception ignored) {
-            // The caller decides whether forcible termination is needed
-        }
-    }
-
-    @PreDestroy
-    public void shutdown() {
-        processes.values().forEach(this::terminateProcessTree);
-        executorService.shutdownNow();
     }
 
 }
