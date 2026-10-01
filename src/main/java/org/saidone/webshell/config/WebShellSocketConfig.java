@@ -24,7 +24,7 @@
 package org.saidone.webshell.config;
 
 import lombok.val;
-import org.saidone.webshell.handler.ShellWebSocketHandler;
+import org.saidone.webshell.handler.WebShellSocketHandler;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -44,21 +44,21 @@ import java.util.Map;
 
 @Configuration
 @EnableWebSocket
-public class WebSocketConfig implements WebSocketConfigurer {
+public class WebShellSocketConfig implements WebSocketConfigurer {
 
-    private final ShellWebSocketHandler shellWebSocketHandler;
+    private final WebShellSocketHandler webShellSocketHandler;
     private final String shellPassword;
 
-    public WebSocketConfig(
-            ShellWebSocketHandler shellWebSocketHandler,
+    public WebShellSocketConfig(
+            WebShellSocketHandler webShellSocketHandler,
             @Value("${application.shell.password:}") String shellPassword) {
-        this.shellWebSocketHandler = shellWebSocketHandler;
+        this.webShellSocketHandler = webShellSocketHandler;
         this.shellPassword = shellPassword;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(shellWebSocketHandler, "/shell")
+        registry.addHandler(webShellSocketHandler, "/shell")
                 .addInterceptors(new ShellPasswordHandshakeInterceptor(shellPassword))
                 .setAllowedOrigins("*");
     }
