@@ -42,7 +42,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Component
-public class ShellWebSocketHandler extends TextWebSocketHandler {
+public class WebShellSocketHandler extends TextWebSocketHandler {
 
     private static final String OS_NAME = System.getProperty("os.name").toLowerCase();
     private static final boolean IS_WINDOWS = OS_NAME.contains("win");
