@@ -185,7 +185,10 @@
         const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
         const socket = new WebSocket(`${protocol}${location.host}${getContextPath()}/shell?password=${encodeURIComponent(pwd)}`);
 
-        socket.addEventListener('open', () => sendSize(socket));
+        socket.addEventListener('open', () => {
+            sendSize(socket);
+            term.focus();
+        });
         socket.onmessage = (e) => term.write(e.data);
         socket.onclose = () => term.write('\r\n\x1b[31m[Connection closed by the server]\x1b[0m\r\n');
 
