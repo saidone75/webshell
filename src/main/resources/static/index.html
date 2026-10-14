@@ -177,29 +177,46 @@
     const sendSize = (ws) => ws.readyState === WebSocket.OPEN && ws.send(`resize:${term.cols}:${term.rows}`);
     const getContextPath = () => window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
 
+    const loginOverlay = document.getElementById('login-overlay');
+    const passwordInput = document.getElementById('shell-password');
+    let socket = null;
+
+    const showLogin = () => {
+        term.reset();
+        passwordInput.value = '';
+        loginOverlay.style.display = '';
+        passwordInput.focus();
+    };
+
+    term.onData((data) => socket && socket.readyState === WebSocket.OPEN && socket.send(data));
+
+    window.addEventListener('resize', () => {
+        fitAddon.fit();
+        socket && sendSize(socket);
+    });
+
+    setInterval(() => socket && socket.readyState === WebSocket.OPEN && socket.send(''), 15000);
+
     document.getElementById('password-form').addEventListener('submit', (e) => {
         e.preventDefault();
-        const pwd = document.getElementById('shell-password').value;
-        document.getElementById('login-overlay').remove();
+        const pwd = passwordInput.value;
+        loginOverlay.style.display = 'none';
 
         const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
-        const socket = new WebSocket(`${protocol}${location.host}${getContextPath()}/shell?password=${encodeURIComponent(pwd)}`);
+        const ws = new WebSocket(`${protocol}${location.host}${getContextPath()}/shell?password=${encodeURIComponent(pwd)}`);
+        socket = ws;
 
-        socket.addEventListener('open', () => {
-            sendSize(socket);
+        ws.addEventListener('open', () => {
+            sendSize(ws);
             term.focus();
         });
-        socket.onmessage = (e) => term.write(e.data);
-        socket.onclose = () => term.write('\r\n\x1b[31m[Connection closed by the server]\x1b[0m\r\n');
-
-        term.onData((data) => socket.readyState === WebSocket.OPEN && socket.send(data));
-
-        window.addEventListener('resize', () => {
-            fitAddon.fit();
-            sendSize(socket);
-        });
-
-        setInterval(() => socket.readyState === WebSocket.OPEN && socket.send(''), 15000);
+        ws.onmessage = (e) => term.write(e.data);
+        ws.onclose = () => {
+            if (socket === ws) {
+                socket = null;
+                showLogin();
+            }
+        };
     });
 </script>
 </body>
