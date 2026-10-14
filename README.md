@@ -144,6 +144,8 @@ Web Shell executes commands on the host running the application with the permiss
 
 The login and WebSocket endpoints accept same-origin browser requests. Session cookies are HttpOnly and SameSite=Strict, and sessions expire after 30 minutes of HTTP inactivity. An established WebSocket remains open until disconnected. Use HTTPS so the servlet container sends the session cookie with the Secure flag; when TLS terminates at a reverse proxy, configure trusted forwarded headers or set `server.servlet.session.cookie.secure=true`. Proxy request-body logging must be disabled for `/login`.
 
+Login attempts are limited to 5 per client IP in a 60-second window, including successful logins. Additional attempts return HTTP 429 with `Retry-After`; the login UI stays silent. Configure `LOGIN_MAX_ATTEMPTS` and `LOGIN_WINDOW_SECONDS` to change the limits. Counters are held in memory per application instance and reset on restart. The limiter uses the servlet remote address: behind a proxy, configure forwarding only from trusted proxies to obtain the client IP. Without that configuration, clients sharing a proxy share the limit.
+
 ## Project layout
 
 ```text

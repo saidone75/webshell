@@ -42,15 +42,23 @@ public class LoginController {
 
     public static final String AUTHENTICATED = LoginController.class.getName() + ".authenticated";
     private final byte[] expectedPassword;
+    private final LoginRateLimiter rateLimiter;
 
-    public LoginController(@Value("${application.shell.password:}") String password) {
+    public LoginController(@Value("${application.shell.password:}") String password, LoginRateLimiter rateLimiter) {
         expectedPassword = password.getBytes(StandardCharsets.UTF_8);
+        this.rateLimiter = rateLimiter;
     }
 
     @PostMapping(value = "/login", consumes = "application/json")
     public ResponseEntity<Void> login(@RequestBody LoginRequest credentials, HttpServletRequest request) {
         if (CorsUtils.isCorsRequest(request)) {
             return response(HttpStatus.FORBIDDEN);
+        }
+        long retryAfter = rateLimiter.retryAfter(request.getRemoteAddr());
+        if (retryAfter > 0) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .header("Retry-After", Long.toString(retryAfter))
+                    .cacheControl(CacheControl.noStore()).build();
         }
         if (expectedPassword.length == 0 || credentials.password() == null || !MessageDigest.isEqual(expectedPassword, credentials.password().getBytes(StandardCharsets.UTF_8))) {
             val session = request.getSession(false);

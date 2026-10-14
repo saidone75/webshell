@@ -7,6 +7,9 @@ spring:
 application:
   shell:
     password: ${SHELL_PASSWORD:0704SmcGUznwetKvPgYB}
+    login:
+      max-attempts: ${LOGIN_MAX_ATTEMPTS:5}
+      window-seconds: ${LOGIN_WINDOW_SECONDS:60}
 server:
   port: ${SERVER_PORT:8080}
   servlet:
