@@ -2,8 +2,10 @@
 
 JAVA_OPTS="-Xmx1G"
 
-# remote debug
-JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8000"
+# enable remote debug with ./run.sh --debug
+if [[ "${1:-}" == "--debug" ]]; then
+    JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8000"
+fi
 
 # flight recorder
 # JAVA_OPTS="$JAVA_OPTS -XX:+FlightRecorder -XX:StartFlightRecording=duration=200s,filename=flight.jfr"
