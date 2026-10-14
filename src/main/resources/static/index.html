@@ -145,6 +145,7 @@
             <option value="zenburn">Zenburn</option>
         </select>
         <button type="submit">Connect</button>
+        <p id="login-error" role="alert" hidden></p>
     </form>
 </div>
 
@@ -197,13 +198,40 @@
 
     setInterval(() => socket && socket.readyState === WebSocket.OPEN && socket.send(''), 15000);
 
-    document.getElementById('password-form').addEventListener('submit', (e) => {
+    document.getElementById('password-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const pwd = passwordInput.value;
+        passwordInput.value = '';
+        const button = e.currentTarget.querySelector('button');
+        const error = document.getElementById('login-error');
+        button.disabled = true;
+        error.hidden = true;
+        try {
+            const response = await fetch(`${getContextPath()}/login`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({password: pwd})
+            });
+            if (!response.ok) {
+                if (response.status !== 401) {
+                    error.textContent = 'Login failed';
+                    error.hidden = false;
+                }
+                passwordInput.focus();
+                return;
+            }
+        } catch {
+            error.textContent = 'Unable to connect';
+            error.hidden = false;
+            return;
+        } finally {
+            button.disabled = false;
+        }
         loginOverlay.style.display = 'none';
 
         const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
-        const ws = new WebSocket(`${protocol}${location.host}${getContextPath()}/shell?password=${encodeURIComponent(pwd)}`);
+        const ws = new WebSocket(`${protocol}${location.host}${getContextPath()}/shell`);
         socket = ws;
 
         ws.addEventListener('open', () => {

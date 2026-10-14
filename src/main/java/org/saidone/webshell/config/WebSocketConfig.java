@@ -25,20 +25,18 @@ package org.saidone.webshell.config;
 
 import lombok.val;
 import org.jspecify.annotations.NonNull;
-import org.springframework.beans.factory.annotation.Value;
+import org.saidone.webshell.controller.LoginController;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.Map;
 
 @Configuration
@@ -46,54 +44,32 @@ import java.util.Map;
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final WebSocketHandler webSocketHandler;
-    private final String shellPassword;
 
-    public WebSocketConfig(
-            WebSocketHandler webSocketHandler,
-            @Value("${application.shell.password:}") String shellPassword) {
+    public WebSocketConfig(WebSocketHandler webSocketHandler) {
         this.webSocketHandler = webSocketHandler;
-        this.shellPassword = shellPassword;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(webSocketHandler, "/shell")
-                .addInterceptors(new ShellPasswordHandshakeInterceptor(shellPassword))
-                .setAllowedOrigins("*");
+                .addInterceptors(new SessionHandshakeInterceptor());
     }
 
-    private record ShellPasswordHandshakeInterceptor(byte[] expectedPassword) implements HandshakeInterceptor {
-
-        private ShellPasswordHandshakeInterceptor(String expectedPassword) {
-            this(expectedPassword.getBytes(StandardCharsets.UTF_8));
-        }
-
+    public static class SessionHandshakeInterceptor implements HandshakeInterceptor {
         @Override
         public boolean beforeHandshake(
                 ServerHttpRequest request,
                 @NonNull ServerHttpResponse response,
                 @NonNull WebSocketHandler wsHandler,
                 @NonNull Map<String, Object> attributes) {
-            val suppliedPassword = request.getURI().getQuery();
-            var password = (String) null;
-            if (suppliedPassword != null) {
-                for (val parameter : suppliedPassword.split("&")) {
-                    val pair = parameter.split("=", 2);
-                    if (pair.length == 2 && pair[0].equals("password")) {
-                        password = URLDecoder.decode(pair[1], StandardCharsets.UTF_8);
-                        break;
-                    }
+            if (request instanceof ServletServerHttpRequest servletRequest) {
+                val session = servletRequest.getServletRequest().getSession(false);
+                if (session != null && Boolean.TRUE.equals(session.getAttribute(LoginController.AUTHENTICATED))) {
+                    return true;
                 }
             }
-
-            val authenticated = password != null
-                    && MessageDigest.isEqual(
-                    expectedPassword,
-                    password.getBytes(StandardCharsets.UTF_8));
-            if (!authenticated) {
-                response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            }
-            return authenticated;
+            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+            return false;
         }
 
         @Override

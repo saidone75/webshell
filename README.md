@@ -16,7 +16,7 @@ Each WebSocket connection creates its own shell process. When the connection clo
 
 - Interactive terminal available from a web browser
 - WebSocket endpoint
-- Password-protected WebSocket handshake
+- HTTP login and session-protected WebSocket handshake
 - Automatic terminal resizing
 - PowerShell support on Windows
 - POSIX shell support on Linux and other Unix-like systems
@@ -40,7 +40,7 @@ The application listens on port `8080` by default. Configure it through environm
 
 | Variable | Example | Description |
 | --- | --- | --- |
-| `SHELL_PASSWORD` | `change-this-password` | Password required by the WebSocket handshake |
+| `SHELL_PASSWORD` | `change-this-password` | Password required by the HTTP login |
 | `SERVER_PORT` | `9090` | HTTP server port |
 
 The shell password is configured with the `SHELL_PASSWORD` environment variable:
@@ -125,8 +125,10 @@ Run the script without arguments to display the available commands.
 The browser connects to the shell using:
 
 ```text
-ws://localhost:8080/shell?password=<password>
+ws://localhost:8080/shell
 ```
+
+First send `POST /login` with `Content-Type: application/json` and body `{"password":"<password>"}`. A successful login returns HTTP 204 and a session cookie; incorrect credentials return 401. Include that cookie in the WebSocket handshake. The browser handles this automatically.
 
 Use `wss://` when the application is served over HTTPS. Text messages are forwarded to the shell process. Terminal dimensions are sent in the following format:
 
@@ -140,7 +142,7 @@ Each WebSocket connection creates one shell process. The process is forcibly ter
 
 Web Shell executes commands on the host running the application with the permissions of the application process. Treat it as an administrative tool and run it only in a trusted environment. Use a strong password, restrict network access, and place it behind HTTPS and an appropriate reverse proxy before making it available over an untrusted network.
 
-The WebSocket endpoint currently allows requests from any origin. Additional network controls and authentication should be added for production deployments.
+The login and WebSocket endpoints accept same-origin browser requests. Session cookies are HttpOnly and SameSite=Strict, and sessions expire after 30 minutes of HTTP inactivity. An established WebSocket remains open until disconnected. Use HTTPS so the servlet container sends the session cookie with the Secure flag; when TLS terminates at a reverse proxy, configure trusted forwarded headers or set `server.servlet.session.cookie.secure=true`. Proxy request-body logging must be disabled for `/login`.
 
 ## Project layout
 
