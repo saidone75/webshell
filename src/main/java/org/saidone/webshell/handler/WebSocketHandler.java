@@ -79,6 +79,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 }
             } catch (Exception ignored) {
             }
+            try {
+                if (session.isOpen()) {
+                    session.close(CloseStatus.NORMAL);
+                }
+            } catch (Exception ignored) {
+            }
         });
     }
 
