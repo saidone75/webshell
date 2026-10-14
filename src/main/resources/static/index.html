@@ -34,7 +34,6 @@
             /* Background */
             --bg-main: #0d1117;
             --bg-surface: #161b22;
-            --bg-overlay: var(--bg-main);
 
             /* Borders and Details */
             --border-color: var(--bg-surface);
@@ -51,7 +50,6 @@
         :root[data-theme="true-summer"] {
             --bg-main: #fffdf7;
             --bg-surface: #ffffff;
-            --bg-overlay: #fffdf7;
             --border-color: #d8d3c8;
             --accent-blue: #2f6f9f;
             --text-main: #3f4650;
@@ -62,7 +60,6 @@
         :root[data-theme="zenburn"] {
             --bg-main: #3f3f3f;
             --bg-surface: #4f4f4f;
-            --bg-overlay: #3f3f3f;
             --border-color: #5f5f5f;
             --accent-blue: #8ac6d1;
             --text-main: #dcdccc;
@@ -93,7 +90,7 @@
         #login-overlay {
             position: fixed;
             inset: 0;
-            background: var(--bg-overlay);
+            background: var(--bg-main);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -145,7 +142,6 @@
             <option value="zenburn">Zenburn</option>
         </select>
         <button type="submit">Connect</button>
-        <p id="login-error" role="alert" hidden></p>
     </form>
 </div>
 
@@ -203,27 +199,19 @@
         const pwd = passwordInput.value;
         passwordInput.value = '';
         const button = e.currentTarget.querySelector('button');
-        const error = document.getElementById('login-error');
         button.disabled = true;
-        error.hidden = true;
         try {
             const response = await fetch(`${getContextPath()}/login`, {
                 method: 'POST',
-                credentials: 'same-origin',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({password: pwd})
             });
             if (!response.ok) {
-                if (response.status !== 401) {
-                    error.textContent = 'Login failed';
-                    error.hidden = false;
-                }
                 passwordInput.focus();
                 return;
             }
         } catch {
-            error.textContent = 'Unable to connect';
-            error.hidden = false;
+            passwordInput.focus();
             return;
         } finally {
             button.disabled = false;
