@@ -58,7 +58,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public static class SessionHandshakeInterceptor implements HandshakeInterceptor {
         @Override
         public boolean beforeHandshake(
-                ServerHttpRequest request,
+                @NonNull ServerHttpRequest request,
                 @NonNull ServerHttpResponse response,
                 @NonNull WebSocketHandler wsHandler,
                 @NonNull Map<String, Object> attributes) {
